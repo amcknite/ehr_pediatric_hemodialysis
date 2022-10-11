@@ -3,11 +3,16 @@ library(data.table)
 library(stringi)
 library(tidyverse)
 
+# Pre-processing indenpendent data set
+## Read in data for Independent data set
 load("data_for_ml.RData")
-
-old_ih_patients <- read.csv("../../../ih_data/ID_patient_encounter_test.csv")
-
+#old_ih_patients <- read.csv("../../../ih_data/ID_patient_encounter_test.csv")
 ih_patients <- read.csv("../../../ih_data/CRRT_iHD_identified_ICD10_ICD9_PCH_20210711.csv")
+ih_demographics <- read.csv("../../../ih_data/IH_CRRT_PD_Demographics_20200204.csv")
+ih_meds <- read.csv("../../../ih_data/IH_CRRT_PD_Medications_20200204.csv")
+drug_tab <- read.csv("../../../ih_data/selected_drugs_AMM.csv")
+
+# select patient encounters coded for ICD10 CRRT(5A1D90Z) and iHD(5A1D70Z)
 ih_patients <- ih_patients %>% 
   select(PATIENT_ID, ENCNTR_SEQ, ICD_5A1D70Z_FLG, ICD_5A1D90Z_FLG) %>%
   filter(ICD_5A1D70Z_FLG == 1 | ICD_5A1D90Z_FLG == 1) %>%
@@ -17,20 +22,17 @@ ih_patients <- ih_patients %>%
   select(-sum , -ICD_5A1D70Z_FLG, -ICD_5A1D90Z_FLG)
 
 
-ih_demographics <- read.csv("../../../ih_data/IH_CRRT_PD_Demographics_20200204.csv")
-
+# Add in patient demographics (age and sex)
 ih_dat <- merge(ih_patients, ih_demographics, by = c("PATIENT_ID", "ENCNTR_SEQ"))
-
 ih_dat <- ih_dat %>%
   select(PATIENT_ID, ENCNTR_SEQ, Flag, AGE_YRS, SEX_DSP)
 
-ih_meds <- read.csv("../../../ih_data/IH_CRRT_PD_Medications_20200204.csv")
-
+#
 nenctr = nrow(ih_dat)
 drug_list <- names(final_dat)[8:ncol(final_dat)]
 
-drug_tab <- read.csv("../../../ih_data/selected_drugs_AMM.csv")
 
+#
 drug_tab <- pivot_longer(drug_tab, cols = name:X.24, values_drop_na = TRUE) %>%
   filter(value != "") %>%
   select(rxcode, value)
