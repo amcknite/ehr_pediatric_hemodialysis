@@ -5,7 +5,7 @@ library(tidyverse)
 
 dirpath <- "/Volumes/Elements/Data/trinetx3/"
 
-## Med codes
+## Read in ICD code dictionary and pull out RxNorm codes
 #meds<- fread(paste0(dirpath, "./60771bc9c2072c76ebbe3710_20210420_135301331/medication_drug.csv"))
 #mi_at<- fread(paste0(dirpath, "./60771bc9c2072c76ebbe3710_20210420_135301331/medication_ingredient.csv"))
 codes <- fread(paste0(dirpath, "./60771bc9c2072c76ebbe3710_20210420_135301331/standardized_terminology.csv"))
@@ -34,7 +34,7 @@ fwrite(child_tab, file = "child_meds_by_age.csv")
 child_tab <- child_dat[, .(.N), by = .(age, code, code_b)]
 child_tab$code <- as.character(child_tab$code)
 
-## Pivot
+## Pivot- switch rows to columns
 child_tab <- dcast(child_tab, age + code ~ code_b)
 child_tab <- merge(child_tab, rxcodes, by = "code", 
                    all.x = TRUE, all.y = FALSE)
@@ -77,7 +77,7 @@ final_dat <- final_dat %>%
   filter(code_b %in% c("5A1D70Z", "5A1D90Z")) %>%
   filter(encounter_id %in% enc_keep)
 
-## Remove all drugs given to less than ?10% of patients
+## Remove all drugs given to less than 5% of patients
 # final_dat <- final_dat %>%
 #   select_if(negate(function(col) is.numeric(col) && sum(col) < 25))
 
