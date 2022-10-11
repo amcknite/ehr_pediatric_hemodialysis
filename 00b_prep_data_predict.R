@@ -5,7 +5,7 @@ library(tidyverse)
 
 dirpath <- "/Volumes/Elements/Data/trinetx3/"
 
-## Med codes
+## Read in ICD code dictionary and pull out RxNorm codes
 codes <- fread(paste0(dirpath, "./60771bc9c2072c76ebbe3710_20210420_135301331/standardized_terminology.csv"))
 rxcodes <- codes[code_system == "RxNorm"]
 
@@ -14,9 +14,9 @@ child_dat <- fread(paste0(dirpath, "icd09/filtered_meds.csv"))
 
 child_dat$age <- child_dat$start_year - child_dat$year_of_birth
 
-## Last ten years
-# child_dat <- child_dat %>% 
-#   filter(start_year >= 2010)
+## Limit to data starting in 2010 to most recent date available in dataset
+child_dat <- child_dat %>% 
+filter(start_year >= 2010)
 
 ## ------------------------------------------------------------------------- ##
 ## First make table for all drugs/codes
@@ -68,7 +68,7 @@ final_dat <- dcast(child_dat, encounter_id + patient_id + age + sex + race + eth
 final_dat <- final_dat %>%
   distinct(encounter_id, patient_id, .keep_all = TRUE)
 
-## Remove all drugs given to less than ?10% of patients
+## Remove all drugs given to less than 5% of patients
 final_dat <- final_dat %>%
   select_if(negate(function(col) is.numeric(col) && sum(col) < 25))
 
