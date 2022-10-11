@@ -1,3 +1,4 @@
+## Load libraries
 set.seed(1234)
 library(data.table)
 library(stringi)
@@ -11,7 +12,6 @@ rxcodes <- codes[code_system == "RxNorm"]
 
 ## Read in data
 child_dat <- fread(paste0(dirpath, "icd09/filtered_meds.csv"))
-
 child_dat$age <- child_dat$start_year - child_dat$year_of_birth
 
 ## Limit to data starting in 2010 to most recent date available in dataset
