@@ -18,7 +18,7 @@ child_dat <- child_dat[child_dat$code_system == "RxNorm", ]
 child_dat$age <- child_dat$start_year - child_dat$year_of_birth
 
 ## ------------------------------------------------------------------------- ##
-## Make table of number of medications by age
+## Make table of number of the number of encounters for each medications by age
 child_tab <- child_dat[, .(.N), by = .(age, code)]
 child_tab$code <- as.character(child_tab$code)
 
