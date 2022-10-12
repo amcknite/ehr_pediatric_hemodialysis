@@ -14,27 +14,10 @@ library(iml)
 
 load("data_for_ml.RData")
 
-y_train <- final_dat %>% 
-  mutate(code = as.factor(code_b),
-         sex = as.numeric(sex == "F")) %>%
-  select(code_b)
-
 final_dat <- final_dat %>% 
   mutate(code = as.factor(code_b),
          sex = as.numeric(sex == "F")) %>%
   select(-patient_id, -encounter_id, -code_b, -race, -ethnicity)
-
-load("ih_data_for_prediction.RData")
-
-y_test <- ih_out %>% 
-  mutate(code = as.factor(code_b),
-         sex = as.numeric(sex == "F")) %>%
-  select(code_b)
-
-final_dat_test <- ih_out %>% 
-  mutate(code = as.factor(code_b),
-         sex = as.numeric(sex == "F")) %>%
-  select(-patient_id, -encounter_id, -code_b)
 
 ## ----------------------------------------------------------------------------
 ##MLR3 setup
@@ -73,7 +56,7 @@ lrn_rpart <- rpart(code ~., surrogate_data,
 lrn_rpart
 prp(lrn_rpart)
 
-## Cross validation of surrogate  using MLR3
+## Cross validation of surrogate using MLR3
 task_surrogate <- TaskClassif$new(id = "surrogate", 
                                   backend = surrogate_data, 
                                   target = "code")
