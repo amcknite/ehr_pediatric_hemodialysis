@@ -1,5 +1,6 @@
 ## Script to tune threshold to discriminate iHD and CRRT
 
+## Load libraries
 set.seed(1234)
 library(data.table)
 library(tidyverse)
@@ -12,9 +13,10 @@ library(vip)
 library(pdp)
 
 ## -------------------------------------------------------------------------- ##
-## Load and process data
+## Load pre-processed data
 load("data_for_ml.RData")
 
+## Set all features as factors and remove columns (features) not used for model
 as.numeric(final_dat$sex == "F")
 final_dat2 <- final_dat %>% 
   mutate(code = as.factor(code_b),
@@ -24,7 +26,7 @@ final_dat2 <- final_dat %>%
 ## -------------------------------------------------------------------------- ##
 ## MLR3
 
-## 1. Set up task
+## 1. Set up task-outline of what algorithms will do
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat2, 
                               target = "code")
 task_drugs$col_roles$group <- "patient_id"
@@ -34,22 +36,7 @@ task_drugs$set_col_roles("patient_id", remove_from = 'feature')
 as.data.table(mlr_tuning_spaces)
 
 ## -------------------------------------------------------------------------- ##
-## glmnet tuning
-# tune learner with default search space
-instance_glmnet = tune(
-  method = "grid_search",
-  task = task_drugs,
-  learner = lts(lrn("classif.glmnet")),
-  resampling = rsmp ("cv", folds = 5),
-  measure = msr("classif.bacc"),
-  term_evals = 100
-)
-
-# best performing hyperparameter configuration
-instance_glmnet$result
-
-## -------------------------------------------------------------------------- ##
-## RF tuning
+## Random forest algorithm tuning
 # tune learner with default search space
 instance_rf = tune(
   method = "grid_search",
@@ -64,7 +51,7 @@ instance_rf = tune(
 instance_rf$result
 
 ## -------------------------------------------------------------------------- ##
-## RF tuning
+## Xgboost algorithm tuning
 # tune learner with default search space
 instance_xgb = tune(
   method = "random_search",
