@@ -30,7 +30,7 @@ child_tab <- child_tab[order(age, -N)]
 fwrite(child_tab, file = "child_meds_by_age.csv")
 
 ## ------------------------------------------------------------------------- ##
-## Make table of medication and diagnoses by age
+## Make table of medications (code) and diagnoses (code_b) by age
 child_tab <- child_dat[, .(.N), by = .(age, code, code_b)]
 child_tab$code <- as.character(child_tab$code)
 
