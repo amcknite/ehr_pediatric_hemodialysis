@@ -9,3 +9,5 @@ Scripts run in order:
 - 00c: Preps IH data for additional vaidation
 - 01b: Runs tuning for RF and XGB models
 - 02: Runs cross-validation
+- 03: Runs additional cross-validation for subpopulations
+- 04: Runs validation on IH dataset
