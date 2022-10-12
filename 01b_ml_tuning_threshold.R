@@ -26,7 +26,7 @@ final_dat2 <- final_dat %>%
 ## -------------------------------------------------------------------------- ##
 ## MLR3
 
-## 1. Set up task-outline of what algorithms will do
+## Set up task-outline of what algorithms will do
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat2, 
                               target = "code")
 task_drugs$col_roles$group <- "patient_id"
