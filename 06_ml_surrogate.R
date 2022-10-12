@@ -42,16 +42,7 @@ final_dat_test <- ih_out %>%
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat, 
                               target = "code")
 
-task_drugs$col_roles$stratum <- "code"
-
-## ----------------------------------------------------------------------------
-# helper function to try different threshold values interactively
-cost_measure = msr("classif.bacc")
-with_threshold = function(p, th) {
-  p$set_threshold(th)
-  list(confusion = p$confusion, costs = p$score(measures = cost_measure, 
-                                                task = task_drugs))
-}
+task_drugs$col_roles$stratum <- "patient_id"
 
 ## ----------------------------------------------------------------------------
 ## Ranger model
@@ -64,13 +55,16 @@ lrn_rf_vi <- lrn("classif.ranger", predict_type = "prob",
 lrn_rf_vi$train(task_drugs)
 
 ## ----------------------------------------------------------------------------
-##MLR3 setup
+## Repredict for surrogate
 lrn_rf_pred <- lrn_rf_vi$predict_newdata(final_dat_test)
-
 lrn_rf_pred <- lrn_rf_vi$predict(task_drugs)
 
+## ----------------------------------------------------------------------------
+## Uses RPART to create surrogate
 library(rpart)
 library(rpart.plot)
+
+## Replace final column with predicted modality
 x <- final_dat[, -231]
 surrogate_data <- cbind(x, lrn_rf_pred$data$response)
 names(surrogate_data)[ncol(surrogate_data)] <- "code"
@@ -79,7 +73,7 @@ lrn_rpart <- rpart(code ~., surrogate_data,
 lrn_rpart
 prp(lrn_rpart)
 
-## Cross validation of surrogate
+## Cross validation of surrogate  using MLR3
 task_surrogate <- TaskClassif$new(id = "surrogate", 
                                   backend = surrogate_data, 
                                   target = "code")
@@ -105,5 +99,3 @@ rr_rpart$aggregate(measure_sen)
 rr_rpart$aggregate(measure_spe)
 rr_rpart$aggregate(measure_acc)
 rr_rpart$aggregate(measure_bacc)
-
-
