@@ -1,3 +1,5 @@
+## Script to prepare data (ICD9)
+
 ## Load libraries
 set.seed(1234)
 library(data.table)
@@ -31,7 +33,7 @@ child_tab <- child_tab[order(age, -N)]
 fwrite(child_tab, file = "child_meds_by_age.csv")
 
 ## ------------------------------------------------------------------------- ##
-## Make table of medications (code) and diagnoses (code_b) by age
+## Make table of medications (code) and dialysis type (code_b) by age
 child_tab <- child_dat[, .(.N), by = .(age, code, code_b)]
 child_tab$code <- as.character(child_tab$code)
 
@@ -59,7 +61,7 @@ bin_fun <- function(x) {
 
 child_dat$race_ethnicity <- paste(child_dat$race, child_dat$ethnicity)
 child_dat$race_ethnicity <- abbreviate(child_dat$race_ethnicity)
-# x1 <- dcast(child_dat, encounter_id + patient_id + age + sex + code_b ~ code, value.var = "age")
+
 ## Pivot table
 final_dat <- dcast(child_dat, encounter_id + patient_id + age + sex + race + ethnicity + code_b ~ code, 
                    fun = bin_fun, value.var = "age")
