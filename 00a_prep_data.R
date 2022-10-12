@@ -69,7 +69,7 @@ child_dat$race_ethnicity <- abbreviate(child_dat$race_ethnicity)
 final_dat <- dcast(child_dat, encounter_id + patient_id + age + sex + race + ethnicity + code_b ~ code, 
                    fun = bin_fun, value.var = "age")
 
-## Remove duplicates medications- results in unique medications per encounter (each administered drug only counted once per encounter)
+## Remove duplicate medications- results in unique medications per encounter (each administered drug only counted once per encounter)
 final_dat <- final_dat %>%
   distinct(encounter_id, patient_id, .keep_all = TRUE)
 
