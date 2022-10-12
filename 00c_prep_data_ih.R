@@ -1,10 +1,12 @@
+## Script to prepare data for ML model testing- PCH dataset
+
+## Load libraries
 set.seed(1234)
 library(data.table)
 library(stringi)
 library(tidyverse)
 
-# Pre-processing indenpendent data set
-## Read in data for Independent data set
+## Read in data for PCH dataset
 load("data_for_ml.RData")
 #old_ih_patients <- read.csv("../../../ih_data/ID_patient_encounter_test.csv")
 ih_patients <- read.csv("../../../ih_data/CRRT_iHD_identified_ICD10_ICD9_PCH_20210711.csv")
@@ -12,7 +14,7 @@ ih_demographics <- read.csv("../../../ih_data/IH_CRRT_PD_Demographics_20200204.c
 ih_meds <- read.csv("../../../ih_data/IH_CRRT_PD_Medications_20200204.csv")
 drug_tab <- read.csv("../../../ih_data/selected_drugs_AMM.csv")
 
-# select patient encounters coded for ICD10 CRRT(5A1D90Z) and iHD(5A1D70Z)
+## Pull out patient encounters coded for ICD10 CRRT(5A1D90Z) and iHD(5A1D70Z)
 ih_patients <- ih_patients %>% 
   select(PATIENT_ID, ENCNTR_SEQ, ICD_5A1D70Z_FLG, ICD_5A1D90Z_FLG) %>%
   filter(ICD_5A1D70Z_FLG == 1 | ICD_5A1D90Z_FLG == 1) %>%
@@ -21,26 +23,28 @@ ih_patients <- ih_patients %>%
   mutate(Flag = ifelse(ICD_5A1D70Z_FLG == 1, "5A1D70Z", "5A1D90Z")) %>%
   select(-sum , -ICD_5A1D70Z_FLG, -ICD_5A1D90Z_FLG)
 
-
-# Add in patient demographics (age and sex)
+## Add in patient demographics (age and sex)
 ih_dat <- merge(ih_patients, ih_demographics, by = c("PATIENT_ID", "ENCNTR_SEQ"))
 ih_dat <- ih_dat %>%
   select(PATIENT_ID, ENCNTR_SEQ, Flag, AGE_YRS, SEX_DSP)
 
-#
+# Make table of medications (code) and diagnoses (code_b) by age
 nenctr = nrow(ih_dat)
 drug_list <- names(final_dat)[8:ncol(final_dat)]
 
-
-#
+## Create list of drug codes 
 drug_tab <- pivot_longer(drug_tab, cols = name:X.24, values_drop_na = TRUE) %>%
   filter(value != "") %>%
   select(rxcode, value)
 
-nenctr = nrow(ih_dat)
+## Makes empty array for PCH patients
+## Row = 1 encounter, column = 1 medication
+## Will be filled in as code goes medication by medication (see below) to see for each encounter if that pateint was administered the medication
 
 drug_mat <- matrix(0, nrow = nenctr, ncol = length(drug_list))
 
+## Go through all encounters one at a tinme. Within an encounter go medication by medication. 
+## If the patient was administered the medication during that encounter, set value for that medication to '1', if no set value to '0'
 for (i in 1:nenctr) {
   tmp_meds <-  ih_meds %>%
     filter(PATIENT_ID == ih_dat$PATIENT_ID[i] & ENCNTR_SEQ == ih_dat$ENCNTR_SEQ[i])
