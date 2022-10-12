@@ -1,19 +1,21 @@
-## Uses final trained model to predict for IH dataset
+## Uses final trained model to predict dialysis type in PCH dataset
 
+## Load libraries
 set.seed(1234)
 library(tidyverse)
 library(mlr3)
 library(mlr3learners)
-# library(mlr3measures)
 library(mlr3viz)
 library(mlr3tuning)
 library(paradox)
 
-## Load and process data
+
 ## final_dat = TriNetX
-## if_out = Intermountain Health
+## if_out = PCH
+## Load data
 load("data_for_ml.RData")
 
+## Set all features as factors and remove columns (features) not used for model
 y_train <- final_dat %>% 
   mutate(code = as.factor(code_b),
          sex = as.numeric(sex == "F")) %>%
@@ -24,8 +26,10 @@ final_dat <- final_dat %>%
          sex = as.numeric(sex == "F")) %>%
   select(-patient_id, -encounter_id, -code_b, -race, -ethnicity)
 
+## Load data
 load("ih_data_for_prediction.RData")
 
+## Set all features as factors and remove columns (features) not used for model
 y_test <- ih_out %>% 
   mutate(code = as.factor(code_b),
          sex = as.numeric(sex == "F")) %>%
@@ -38,14 +42,14 @@ final_dat_test <- ih_out %>%
 
 ## ----------------------------------------------------------------------------
 ##MLR3 setup
-## Set up task
+## set up task-outline of what model will do
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat, 
                               target = "code")
 
 task_drugs$col_roles$stratum <- "code"
 
 ## ----------------------------------------------------------------------------
-# helper function to try different threshold values interactively
+## Helper function to try different threshold values 
 cost_measure = msr("classif.bacc")
 with_threshold = function(p, th) {
   p$set_threshold(th)
@@ -54,7 +58,7 @@ with_threshold = function(p, th) {
 }
 
 ## ----------------------------------------------------------------------------
-## Ranger model
+## Random forest model
 lrn_rf_vi <- lrn("classif.ranger", predict_type = "prob",
                  mtry.ratio = 0.222222,
                  sample.fraction = 0.9,
@@ -108,5 +112,5 @@ print(out.xgb[which.max(out.xgb$costs),])
 with_threshold(lrn_rf_pred, out.rf$myth[which.max(out.rf$costs)[1]])
 with_threshold(lrn_xgb_pred, out.xgb$myth[which.max(out.xgb$costs)[1]])
 
-## RF predictions
+
 
