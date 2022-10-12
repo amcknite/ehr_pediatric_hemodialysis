@@ -1,10 +1,10 @@
-## Cross validation for subpopulations (SI figure)
+## Cross validation for subpopulations (SI figures)
 
+## Load libraries
 set.seed(42)
 library(tidyverse)
 library(mlr3)
 library(mlr3learners)
-# library(mlr3measures)
 library(mlr3pipelines)
 library(mlr3viz)
 library(mlr3tuning)
@@ -21,7 +21,7 @@ final_dat2 <- final_dat %>%
          sex = as.numeric(sex == "F")) %>%
   select(-encounter_id, -code_b)
 
-#3 Define subpopulations for cross-validation
+## Define subpopulations (race, ethnicity and sex) for cross-validation
 all_races <- c("Black or African American", "Asian", 
                "American Indian or Alaska Native", "White", "Unknown")
 
@@ -29,21 +29,20 @@ all_ethnicities <- c("Hispanic or Latino", "Not Hispanic or Latino", "Unknown")
 
 all_sexes <- c(0, 1)
 
-## Set up task
+## Set up task-outline of what models will do
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat2, 
                               target = "code")
 
-# task_drugs$col_roles$stratum <- "code"
 task_drugs$col_roles$group <- "patient_id"
 task_drugs$set_col_roles("patient_id", remove_from = 'feature')
 task_drugs$set_col_roles("race", remove_from = 'feature')
 task_drugs$set_col_roles("ethnicity", remove_from = 'feature')
 
-## Resampling
+## Define repeated k-fold cross validation
 cv_rsmp <- rsmp("repeated_cv", folds = 5, repeats = 2)
 cv_rsmp$instantiate(task_drugs)
 
-## Measure
+## Define performance metrics
 measure_auc <- msr("classif.auc")
 measure_sen <- msr("classif.sensitivity")
 measure_spe <- msr("classif.specificity")
@@ -52,12 +51,12 @@ measure_bacc <- msr("classif.bacc")
 all_msr <- c(measure_auc, measure_sen, measure_spe, measure_acc, measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## Random forest - loop over all levels for each subpopulation
-## For each level:
-## - Put level in testing set
-## - All other levels in training set 
-
-## By race
+## Random forest model - run for each category in all subpopulations (example: subpopulation sex: category 0 = male, category 1 = female)
+## For each category:
+## - Put category in testing set
+## - Other categories in training set 
+ 
+## Subpopulation Race
 rf_race <- NULL
 for (race in all_races) {
   train_set = which(final_dat2$race != race)
@@ -81,7 +80,8 @@ rf_race <- data.frame(rf_race)
 rownames(rf_race) <- all_races
 write.csv(rf_race, "./xv_groups/rf_race.csv")
 
-## By ethnicity
+
+## Subpopulation Ethnicity
 rf_eth <- NULL
 for (eth in all_ethnicities) {
   train_set = which(final_dat2$ethnicity != eth)
@@ -105,7 +105,7 @@ rf_eth <- data.frame(rf_eth)
 rownames(rf_eth) <- all_ethnicities
 write.csv(rf_eth, "./xv_groups/rf_eth.csv")
 
-## By sex
+## Subpopulation Sex
 rf_sex <- NULL
 for (sex in all_sexes) {
   train_set = which(final_dat2$sex != sex)
@@ -130,7 +130,11 @@ rownames(rf_sex) <- all_sexes
 write.csv(rf_sex, "./xv_groups/rf_sex.csv")
 
 ## ------------------------------------------------------------------------- ##
-## XGBoost
+## XGBoost model - run for each category in all subpopulations (example: subpopulation sex: category 0 = male, category 1 = female)
+## For each category:
+## - Put category in testing set
+## - Other categories in training set 
+
 xgb_race <- NULL
 for (race in all_races) {
   train_set = which(final_dat2$race != race)
