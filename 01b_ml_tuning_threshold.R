@@ -1,3 +1,5 @@
+## Script to tune threshold to discriminate iHD and CRRT
+
 set.seed(1234)
 library(data.table)
 library(tidyverse)
