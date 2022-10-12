@@ -1,3 +1,5 @@
+## Script to prepare data for training ML models (ICD10 data)
+
 ## Load libraries
 set.seed(1234)
 library(data.table)
