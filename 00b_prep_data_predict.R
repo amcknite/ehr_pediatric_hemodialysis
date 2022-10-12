@@ -19,7 +19,7 @@ child_dat <- child_dat %>%
 filter(start_year >= 2010)
 
 ## ------------------------------------------------------------------------- ##
-## First make table for all drugs/codes
+## Make table of number of the number of encounters for each medications by age
 child_tab <- child_dat[, .(.N), by = .(age, code)]
 child_tab$code <- as.character(child_tab$code)
 
@@ -31,23 +31,22 @@ child_tab <- child_tab[order(age, -N)]
 fwrite(child_tab, file = "child_meds_by_age.csv")
 
 ## ------------------------------------------------------------------------- ##
-## Now make table by code 
+## Make table of medications (code) and diagnoses (code_b) by age
 child_tab <- child_dat[, .(.N), by = .(age, code, code_b)]
 child_tab$code <- as.character(child_tab$code)
 
-## Pivot
+## Pivot- change table into cross table format
 child_tab <- dcast(child_tab, age + code ~ code_b)
 child_tab <- merge(child_tab, rxcodes, by = "code", 
                    all.x = TRUE, all.y = FALSE)
 child_tab <- unique(child_tab[, -c("path", "unit")])
 
-# child_tab <- unique(child_tab[, -c("path", "unit")])
 child_tab <- child_tab[order(age)]
 
 fwrite(child_tab, file = "child_meds_by_age_and_proc.csv")
 
 ## ------------------------------------------------------------------------- ##
-## Table for ML
+## table..
 
 ## Now make up wide table with drugs by encounter
 bin_fun <- function(x) {
