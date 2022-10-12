@@ -1,10 +1,10 @@
-## Creates partial dependency and variable importance figures
+## Create partial dependency and variable importance figures
 
+## Load libraries
 set.seed(1234)
 library(tidyverse)
 library(mlr3)
 library(mlr3learners)
-# library(mlr3measures)
 library(mlr3viz)
 library(mlr3tuning)
 library(paradox)
@@ -17,13 +17,13 @@ library(ggplot2)
 ## Load data
 load("data_for_ml.RData")
 
-## Makes vector of outcomes (dialysis modality)
+## Set all features as factors for outcomes (dialysis modality)
 y_train <- final_dat %>% 
   mutate(code = as.factor(code_b),
          sex = as.numeric(sex == "F")) %>%
   select(code_b)
 
-## Makes data frame with features
+## Assign features to a dataframe
 final_dat <- final_dat %>% 
   mutate(code = as.factor(code_b),
          sex = as.numeric(sex == "F")) %>%
@@ -31,7 +31,7 @@ final_dat <- final_dat %>%
 
 ## ----------------------------------------------------------------------------
 ##MLR3 setup
-## Set up task
+## set up task-outline of what model will do
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat, 
                               target = "code")
 
@@ -56,7 +56,7 @@ vi_rf$Drug <- vi_rf$Variable
 
 nvi <- nrow(vi_rf)
 
-## RxNorm to medication name for labels
+## RxNorm to medication name for plot labels
 drugs <- read.csv("selected_drugs.csv") 
 for (i in 1:nvi) {
   if (substr(vi_rf$Variable[i], 0, 2) == "RX") {
