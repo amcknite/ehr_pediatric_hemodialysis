@@ -1,3 +1,5 @@
+## Runs cross-validation (blocked on patient id)
+
 set.seed(42)
 library(tidyverse)
 library(mlr3)
