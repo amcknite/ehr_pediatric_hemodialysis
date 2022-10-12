@@ -1,10 +1,10 @@
 ## Runs cross-validation (blocked on patient id)
 
+## Load libraries
 set.seed(42)
 library(tidyverse)
 library(mlr3)
 library(mlr3learners)
-# library(mlr3measures)
 library(mlr3pipelines)
 library(mlr3viz)
 library(mlr3tuning)
@@ -14,9 +14,10 @@ library(vip)
 library(pdp)
 
 ## ------------------------------------------------------------------------- ##
-## Load and process data
+## Load and pre-processed data
 load("data_for_ml.RData")
 
+## Set all features as factors and remove columns (features)not used for model
 as.numeric(final_dat$sex == "F")
 final_dat2 <- final_dat %>% 
   mutate(code = as.factor(code_b),
@@ -25,19 +26,18 @@ final_dat2 <- final_dat %>%
 
 ## ------------------------------------------------------------------------- ##
 ## MLR3 set up
-## 1. Set up task
+## 1. Set up task-outline of what algorithms will do
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat2, 
                               target = "code")
 
-# task_drugs$col_roles$stratum <- "code"
 task_drugs$col_roles$group <- "patient_id"
 task_drugs$set_col_roles("patient_id", remove_from = 'feature')
 
-## 2. Resampling
+## 2. Define repeated k-fold cross validation
 cv_rsmp <- rsmp("repeated_cv", folds = 5, repeats = 10)
 cv_rsmp$instantiate(task_drugs)
 
-## 3. Measure
+## 3. Define performance metrics
 measure_auc <- msr("classif.auc")
 measure_sen <- msr("classif.sensitivity")
 measure_spe <- msr("classif.specificity")
@@ -45,7 +45,7 @@ measure_acc <- msr("classif.acc")
 measure_bacc <- msr("classif.bacc")
 
 ## ------------------------------------------------------------------------- ##
-## Featureless
+## Define a learner (algorithm) - featureless model
 learner <- lrn("classif.featureless", predict_type = "prob")
 rr_fl <- resample(task_drugs, learner, cv_rsmp)
 rr_fl$score(measure_auc)
@@ -56,7 +56,7 @@ rr_fl$aggregate(measure_acc)
 rr_fl$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## Simple log regression
+## Define a learner (algorithm) - simple logistic regression model
 learner <- lrn("classif.log_reg", predict_type = "prob")
 rr_lr <- resample(task_drugs, learner, cv_rsmp)
 rr_lr$score(measure_auc)
@@ -67,7 +67,7 @@ rr_lr$aggregate(measure_acc)
 rr_lr$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## Naive Bayes
+## Define a learner (algorithm) - naive bayes model
 learner <- lrn("classif.naive_bayes", predict_type = "prob")
 rr_nb <- resample(task_drugs, learner, cv_rsmp)
 rr_nb$score(measure_auc)
@@ -78,7 +78,7 @@ rr_nb$aggregate(measure_acc)
 rr_nb$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## GLMnet
+## Define a learner (algorithm) - GLMnet (elastic net) model
 learner <- lrn("classif.glmnet", predict_type = "prob",
                alpha = 0.222222, s = exp(-5.116856))
 rr_glmnet <- resample(task_drugs, learner, cv_rsmp)
@@ -90,7 +90,7 @@ rr_glmnet$aggregate(measure_acc)
 rr_glmnet$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## k-NN
+## Define a learner (algorithm) - k-NN (k-nearest neighbor) model
 learner <- lrn("classif.kknn", predict_type = "prob")
 rr_knn <- resample(task_drugs, learner, cv_rsmp)
 rr_knn$score(measure_auc)
@@ -101,7 +101,7 @@ rr_knn$aggregate(measure_acc)
 rr_knn$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## SVM
+## Define a learner (algorithm) - SVM (support vector machines) model
 learner <- lrn("classif.svm", kernel = "radial", scale = TRUE, 
                predict_type = "prob", gamma = 0.01)
 rr_svm <- resample(task_drugs, learner, cv_rsmp)
@@ -113,7 +113,7 @@ rr_svm$aggregate(measure_acc)
 rr_svm$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## Random forest
+## Define a learner (algorithm) - random forest model
 lrn_rf <- lrn("classif.ranger", predict_type = "prob",
               mtry.ratio = 0.222222,
               sample.fraction = 0.9,
@@ -127,7 +127,7 @@ rr_rf$aggregate(measure_acc)
 rr_rf$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## XGBoost
+## Define a learner (algorithm) - XGBoost model
 lrn_xgb <- lrn("classif.xgboost", 
                predict_type = "prob",
                nrounds = 750,
@@ -148,7 +148,7 @@ rr_xgb$aggregate(measure_acc)
 rr_xgb$aggregate(measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## Table
+## Create table of all algorithms performance metrics
 cols <- c("classif.auc", 
           "classif.sensitivity",
           "classif.specificity",
