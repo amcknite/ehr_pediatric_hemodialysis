@@ -13,6 +13,8 @@ library(ranger)
 library(vip)
 library(pdp)
 
+## ------------------------------------------------------------------------- ##
+## Load and process data
 load("data_for_ml.RData")
 
 as.numeric(final_dat$sex == "F")
@@ -21,7 +23,9 @@ final_dat2 <- final_dat %>%
          sex = as.numeric(sex == "F")) %>%
   select(-encounter_id, -code_b, -race, -ethnicity)
 
-## Set up task
+## ------------------------------------------------------------------------- ##
+## MLR3 set up
+## 1. Set up task
 task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat2, 
                               target = "code")
 
@@ -29,11 +33,11 @@ task_drugs <- TaskClassif$new(id = "drugs", backend = final_dat2,
 task_drugs$col_roles$group <- "patient_id"
 task_drugs$set_col_roles("patient_id", remove_from = 'feature')
 
-## Resampling
+## 2. Resampling
 cv_rsmp <- rsmp("repeated_cv", folds = 5, repeats = 10)
 cv_rsmp$instantiate(task_drugs)
 
-## Measure
+## 3. Measure
 measure_auc <- msr("classif.auc")
 measure_sen <- msr("classif.sensitivity")
 measure_spe <- msr("classif.specificity")
