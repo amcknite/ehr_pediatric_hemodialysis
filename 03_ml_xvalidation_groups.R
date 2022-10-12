@@ -21,6 +21,7 @@ final_dat2 <- final_dat %>%
          sex = as.numeric(sex == "F")) %>%
   select(-encounter_id, -code_b)
 
+#3 Define subpopulations for cross-validation
 all_races <- c("Black or African American", "Asian", 
                "American Indian or Alaska Native", "White", "Unknown")
 
@@ -51,7 +52,12 @@ measure_bacc <- msr("classif.bacc")
 all_msr <- c(measure_auc, measure_sen, measure_spe, measure_acc, measure_bacc)
 
 ## ------------------------------------------------------------------------- ##
-## Random forest
+## Random forest - loop over all levels for each subpopulation
+## For each level:
+## - Put level in testing set
+## - All other levels in training set 
+
+## By race
 rf_race <- NULL
 for (race in all_races) {
   train_set = which(final_dat2$race != race)
@@ -75,6 +81,7 @@ rf_race <- data.frame(rf_race)
 rownames(rf_race) <- all_races
 write.csv(rf_race, "./xv_groups/rf_race.csv")
 
+## By ethnicity
 rf_eth <- NULL
 for (eth in all_ethnicities) {
   train_set = which(final_dat2$ethnicity != eth)
@@ -98,6 +105,7 @@ rf_eth <- data.frame(rf_eth)
 rownames(rf_eth) <- all_ethnicities
 write.csv(rf_eth, "./xv_groups/rf_eth.csv")
 
+## By sex
 rf_sex <- NULL
 for (sex in all_sexes) {
   train_set = which(final_dat2$sex != sex)
