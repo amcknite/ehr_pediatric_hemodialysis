@@ -11,3 +11,5 @@ Scripts run in order:
 - 02: Runs cross-validation
 - 03: Runs additional cross-validation for subpopulations
 - 04: Runs validation on IH dataset
+- 05: Makes figures from paper (PDP, VIP)
+- 06: Creates and tests surrogate model
