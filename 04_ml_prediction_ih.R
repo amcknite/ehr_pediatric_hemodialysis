@@ -9,6 +9,9 @@ library(mlr3viz)
 library(mlr3tuning)
 library(paradox)
 
+## Load and process data
+## final_dat = TriNetX
+## if_out = Intermountain Health
 load("data_for_ml.RData")
 
 y_train <- final_dat %>% 
