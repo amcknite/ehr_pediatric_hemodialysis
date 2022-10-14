@@ -1,6 +1,6 @@
 # ehr_pediatric_hemodialysis
 
-Scripts to run code from TITLE HERE, Mcknite et al, CITATION HERE
+Scripts to run code from: Medication based machine learning to identify subpopulations of pediatric hemodialysis patients in an electronic health record database Mcknite et al, Informatics in Medicine Unlocked.
 
 Scripts run in order:
 
